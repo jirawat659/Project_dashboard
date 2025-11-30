@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ข้อมูลผู้สูงอายุ 2566</title>
+    <meta name="description" content="Dashboard แสดงข้อมูลสถิติผู้สูงอายุในประเทศไทย ปี 2566">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1>📊 Dashboard ข้อมูลผู้สูงอายุ</h1>
+                <p class="subtitle">ปีงบประมาณ 2566</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-refresh" onclick="loadData()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M21 3v5h-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M3 21v-5h5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    รีเฟรช
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card" id="card-1">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <h3 class="stat-label">จำนวนผู้สูงอายุทั้งหมด</h3>
+                    <p class="stat-value" id="total-elderly">-</p>
+                    <span class="stat-change positive">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" stroke-width="2"/>
+                            <polyline points="17 6 23 6 23 12" stroke-width="2"/>
+                        </svg>
+                        <span id="total-change">-</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="stat-card" id="card-2">
+                <div class="stat-icon">👨</div>
+                <div class="stat-content">
+                    <h3 class="stat-label">ผู้สูงอายุชาย</h3>
+                    <p class="stat-value" id="male-elderly">-</p>
+                    <span class="stat-change">
+                        <span id="male-percent">-</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="stat-card" id="card-3">
+                <div class="stat-icon">👩</div>
+                <div class="stat-content">
+                    <h3 class="stat-label">ผู้สูงอายุหญิง</h3>
+                    <p class="stat-value" id="female-elderly">-</p>
+                    <span class="stat-change">
+                        <span id="female-percent">-</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="stat-card" id="card-4">
+                <div class="stat-icon">📍</div>
+                <div class="stat-content">
+                    <h3 class="stat-label">จังหวัดที่มีข้อมูล</h3>
+                    <p class="stat-value" id="province-count">-</p>
+                    <span class="stat-change">
+                        <span id="province-text">จังหวัด</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <!-- Gender Distribution Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h2>สัดส่วนเพศ</h2>
+                    <select class="chart-filter" id="gender-filter">
+                        <option value="all">ข้อมูลทั้งหมด</option>
+                        <option value="male">ชายอย่างเดียว</option>
+                        <option value="female">หญิงอย่างเดียว</option>
+                    </select>
+                </div>
+                <div class="chart-body">
+                    <canvas id="genderChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Age Group Distribution -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h2>การกระจายตามช่วงอายุ</h2>
+                    <select class="chart-filter" id="age-filter">
+                        <option value="all">ทุกช่วงอายุ</option>
+                    </select>
+                </div>
+                <div class="chart-body">
+                    <canvas id="ageChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Provinces -->
+            <div class="chart-card chart-card-wide">
+                <div class="chart-header">
+                    <h2>10 จังหวัดที่มีผู้สูงอายุมากที่สุด</h2>
+                    <select class="chart-filter" id="province-filter">
+                        <option value="10">Top 10</option>
+                        <option value="20">Top 20</option>
+                        <option value="all">ทั้งหมด</option>
+                    </select>
+                </div>
+                <div class="chart-body">
+                    <canvas id="provinceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Trend Chart -->
+            <div class="chart-card chart-card-wide">
+                <div class="chart-header">
+                    <h2>แนวโน้มข้อมูล</h2>
+                </div>
+                <div class="chart-body">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-card">
+            <div class="table-header">
+                <h2>ข้อมูลรายละเอียด</h2>
+                <input type="text" id="search-input" class="search-input" placeholder="🔍 ค้นหา...">
+            </div>
+            <div class="table-container">
+                <table id="data-table">
+                    <thead id="table-head">
+                        <tr>
+                            <th>กำลังโหลดข้อมูล...</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr>
+                            <td colspan="100%">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                    กำลังโหลดข้อมูลจากไฟล์ Excel...
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <p>© 2566 Dashboard ข้อมูลผู้สูงอายุ | สร้างด้วย HTML, CSS & JavaScript</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
