@@ -161,7 +161,10 @@ function renderCharts(data) {
 
     // Province chart
     renderProvinceChart(data, provinceKey, totalKey);
-
+    const provinceFilter = document.getElementById('province-filter');
+    if (provinceFilter) {
+        updateProvinceChart(parseInt(provinceFilter.value));
+    }
     // Trend chart
     renderTrendChart(data);
 }
@@ -570,8 +573,8 @@ function setupEventListeners() {
     });
 
     document.getElementById('province-filter')?.addEventListener('change', (e) => {
-        const value = e.target.value;
-        // Rerender province chart with different limit
+        const limit = parseInt(e.target.value);
+        updateProvinceChart(limit);
     });
 }
 
@@ -624,4 +627,30 @@ function updateGenderChart(filter) {
     }
 
     chartInstances.gender.update();
+}
+
+function updateProvinceChart(limit) {
+    const keys = Object.keys(rawData[0]);
+
+    const provinceKey = keys.find(k =>
+        k.includes('จังหวัด') || k.includes('Province') || k.includes('ชื่อจังหวัด')
+    );
+
+    const totalKey = keys.find(k =>
+        k.includes('รวม') || k.includes('Total') || k.includes('total')
+    );
+
+    if (!provinceKey || !totalKey) return;
+
+    let provinceData = rawData.map(row => ({
+        province: row[provinceKey],
+        total: parseFloat(row[totalKey]) || 0
+    }))
+        .filter(item => item.province && item.total > 0)
+        .sort((a, b) => b.total - a.total)
+        .slice(0, limit);
+
+    chartInstances.province.data.labels = provinceData.map(d => d.province);
+    chartInstances.province.data.datasets[0].data = provinceData.map(d => d.total);
+    chartInstances.province.update();
 }
