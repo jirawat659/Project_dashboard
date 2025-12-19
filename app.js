@@ -561,7 +561,8 @@ function setupEventListeners() {
 
     // Chart filters
     document.getElementById('gender-filter')?.addEventListener('change', (e) => {
-        // Implement gender filter logic
+        const filter = e.target.value;
+        updateGenderChart(filter);
     });
 
     document.getElementById('age-filter')?.addEventListener('change', (e) => {
@@ -605,4 +606,22 @@ function showError(message) {
             </td>
         </tr>
     `;
+}
+
+function updateGenderChart(filter) {
+    if (!chartInstances.gender) return;
+
+    const data = chartInstances.gender.data.datasets[0].data;
+    const male = data[0];
+    const female = data[1];
+
+    if (filter === 'male') {
+        chartInstances.gender.data.datasets[0].data = [male, 0];
+    } else if (filter === 'female') {
+        chartInstances.gender.data.datasets[0].data = [0, female];
+    } else {
+        chartInstances.gender.data.datasets[0].data = [male, female];
+    }
+
+    chartInstances.gender.update();
 }
