@@ -41,4 +41,3 @@ except Exception as e:
     print(f"ERROR: เกิดข้อผิดพลาด: {e}")
     print("\nกรุณาติดตั้ง pandas และ openpyxl ก่อน:")
     print("pip install pandas openpyxl")
-
